@@ -17,7 +17,7 @@
 
 #define GLSL(sh) #sh
 
-int wsx=800, wsy = 800 * (800.0f / 1280.0f);
+int wsx=700, wsy = 700;
 int scale = 4;
 int sx = wsx / scale;
 int sy = wsy / scale;
@@ -202,8 +202,8 @@ struct SApp : AppBasic {
 				Vec2f move;
 				move.x = noiseXAt(Vec2f(p), getElapsedFrames() / 100.0f);
 				move.y = noiseYAt(Vec2f(p), getElapsedFrames() / 100.0f);
-				//aaPoint(img2, Vec2f(p) + move * .5f, img(p));
-				img2(p) = getBilinear(img, Vec2f(p) + move);
+				aaPoint(img2, Vec2f(p) + move * .5f, img(p));
+				//img2(p) = getBilinear(img, Vec2f(p) + move*.5);
 			}
 
 			img = img2;
@@ -251,6 +251,23 @@ struct SApp : AppBasic {
 			"_out = vec3(f);"
 			, ShadeOpts().scale(::scale)
 			);
+		auto texb = gpuBlur2_4::run(tex, 2);
+		auto texbg = get_gradients_tex(texb);
+		auto texbgc = shade2(texbg,
+			"vec2 grad = fetch2(tex);"
+			"vec3 rbow = rainbow(grad).xyz;"
+			"_out = rbow;"
+			,ShadeOpts().ifmt(GL_RGB16F),
+			"vec4 rainbow(float x, float br)  { vec4 c = .5 + .5 * cos(6.2832*(x - vec4(0,1,2,0)/3.)); return c * br; }"
+			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416 + .5, length(C)*20.0); }"
+			);
+		auto texbgcb = gpuBlur2_4::run(texbgc, 3);
+	
+		tex = shade2(texb, texbgcb,
+			"float b = fetch1();"
+			"vec3 cb = b * vec3(1.0);"
+			"vec3 rbow = fetch3(tex2);"
+			"_out = cb + rbow;");
 		gl::draw(tex, getWindowBounds());
 	}
 #endif
