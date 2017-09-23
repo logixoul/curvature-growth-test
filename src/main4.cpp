@@ -244,7 +244,13 @@ struct SApp : AppBasic {
 	}
 	void renderIt() {
 		auto tex = gtex(img);
-		
+		tex = shade2(tex,
+			"float f = fetch1(tex);"
+			"float fw = fwidth(f);"
+			"f = smoothstep (.5 - fw / 2, .5 + fw / 2, f);"
+			"_out = vec3(f);"
+			, ShadeOpts().scale(::scale)
+			);
 		gl::draw(tex, getWindowBounds());
 	}
 #endif
