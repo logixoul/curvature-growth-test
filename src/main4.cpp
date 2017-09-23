@@ -162,13 +162,14 @@ struct SApp : AppBasic {
 	void updateIt() {
 		if(!pause) {
 			img = gaussianBlur<float, WrapModes::GetWrapped>(img, 9);
+			//auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, 3);
 			
 			for(int i = 0; i < 1; i++) {
 				int r = 1 << int(i * 1.5);
 				r += 1;
-				auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, r);
-				auto img2 = zeros_like(img);
-				auto gradients = get_gradients(imgb);
+				//auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, r);
+				//auto img2 = zeros_like(img);
+				auto gradients = get_gradients(img);
 				forxy(gradients) {
 					Vec2f pf = p;
 					Vec2f grad = gradients(p).safeNormalized();
@@ -179,21 +180,34 @@ struct SApp : AppBasic {
 					grad_b = Vec2f(-grad_b.y, grad_b.x);
 					Vec2f dir = grad_a + grad_b;
 					if(dir.dot(grad) < 0.0) {
-						//if(imgb(p) < .5f)
-						img2(p) += dir.length()*.5;
+						//if(getBilinear(imgb, Vec2f(p+dir)) < .5f)
+							img(p) += dir.length() * 1.0 * img(p);
 					}
 				}
-				auto img2b = gaussianBlur<float, WrapModes::GetWrapped>(img2, r);
+				/*auto img2b = gaussianBlur<float, WrapModes::GetWrapped>(img2, r);
 				forxy(img) {
 					img(p) += img2b(p);
-				}
+				}*/
 			}
 		
 			Vec2f center(sx/2, sy/2);
 			float maxDist = Vec2f::zero().distance(center);
 			forxy(img) {
-				//img(p) *= smoothstep(maxDist, 0.0, Vec2f(p).distance(center));
+				//img(p) *= smoothstep(maxDist*2.0, -maxDist, Vec2f(p).distance(center));
 			}
+			
+			auto img2 = zeros_like(img);
+
+			forxy(img) {
+				Vec2f move;
+				move.x = noiseXAt(Vec2f(p), getElapsedFrames() / 100.0f);
+				move.y = noiseYAt(Vec2f(p), getElapsedFrames() / 100.0f);
+				//aaPoint(img2, Vec2f(p) + move * .5f, img(p));
+				img2(p) = getBilinear(img, Vec2f(p) + move);
+			}
+
+			img = img2;
+
 
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
 			float avg = sum / img.area;
@@ -204,19 +218,7 @@ struct SApp : AppBasic {
 				//img(p) = smoothstep(0.0, 1.0, img(p));
 			}
 
-			auto img2 = zeros_like(img);
-
-			forxy(img) {
-				Vec2f move;
-				move.x = noiseXAt(Vec2f(p), getElapsedFrames() / 100.0f);
-				move.y = noiseYAt(Vec2f(p), getElapsedFrames() / 100.0f);
-				aaPoint(img2, Vec2f(p) + move, img(p));
-				//img2(p) = getBilinear(img, Vec2f(p) + move);
-			}
-
-			img = img2;
-
-			img = to01(img);
+			//img = to01(img);
 			
 			if(mouseDown_[0])
 			{
