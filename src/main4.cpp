@@ -17,7 +17,7 @@
 
 #define GLSL(sh) #sh
 
-int wsx=700, wsy = 700;
+int wsx=600, wsy = 600;
 int scale = 4;
 int sx = wsx / scale;
 int sy = wsy / scale;
@@ -249,9 +249,9 @@ struct SApp : AppBasic {
 			"float fw = fwidth(f);"
 			"f = smoothstep (.5 - fw / 2, .5 + fw / 2, f);"
 			"_out = vec3(f);"
-			, ShadeOpts().scale(::scale)
+			, ShadeOpts()
 			);
-		auto texb = gpuBlur2_4::run(tex, 2);
+		auto texb = gauss3tex(tex);//gpuBlur2_4::run(tex, 1);
 		auto texbg = get_gradients_tex(texb);
 		auto texbgc = shade2(texbg,
 			"vec2 grad = fetch2(tex);"
@@ -259,9 +259,9 @@ struct SApp : AppBasic {
 			"_out = rbow;"
 			,ShadeOpts().ifmt(GL_RGB16F),
 			"vec4 rainbow(float x, float br)  { vec4 c = .5 + .5 * cos(6.2832*(x - vec4(0,1,2,0)/3.)); return c * br; }"
-			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416 + .5, length(C)*20.0); }"
+			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416 + .5, length(C)*5.0); }"
 			);
-		auto texbgcb = gpuBlur2_4::run(texbgc, 3);
+		auto texbgcb = gpuBlur2_4::run(texbgc, 1);
 	
 		tex = shade2(texb, texbgcb,
 			"float b = fetch1();"
