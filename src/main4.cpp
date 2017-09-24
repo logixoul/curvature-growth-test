@@ -37,7 +37,7 @@ bool keys2[256];
 void updateConfig() {
 }
 
-const int numDetailsX = 5;
+const int numDetailsX = 3;
 const float nscale = numDetailsX / (float)sx;
 
 static float noiseXAt(Vec2f p, float z) {
