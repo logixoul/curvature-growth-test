@@ -263,20 +263,11 @@ struct SApp : AppBasic {
 			);
 		auto texbgcb = gpuBlur2_4::run_longtail(texbgc, 4, 1.0f);
 
-		auto texshadow = gpuBlur2_4::run(texb, 4);
-		texshadow = shade2(texshadow,
-			"float f = fetch1();"
-			"f = mix(1.0, 0.0, f);"
-			"f = pow(f, 8.0);"
-			"_out = vec3(f);"
-			);
-	
-		tex = shade2(texb, texbgcb, texshadow,
+		tex = shade2(texb, texbgcb,
 			"float b = fetch1();"
 			"vec3 cb = b * vec3(0.6);"
 			"vec3 rbow = fetch3(tex2);"
-			"float shadow = fetch1(tex3);"
-			"_out = shadow + cb + rbow;"
+			"_out = cb + rbow;"
 			"_out = pow(_out, vec3(1.0/2.2));"
 			);
 		gl::draw(tex, getWindowBounds());
