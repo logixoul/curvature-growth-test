@@ -249,9 +249,9 @@ struct SApp : AppBasic {
 			"float fw = fwidth(f);"
 			"f = smoothstep (.5 - fw / 2, .5 + fw / 2, f);"
 			"_out = vec3(f);"
-			, ShadeOpts()
+			, ShadeOpts().scale(2)
 			);
-		auto texb = gauss3tex(tex);//gpuBlur2_4::run(tex, 1);
+		auto texb = tex;//gpuBlur2_4::run(tex, 1);
 		auto texbg = get_gradients_tex(texb);
 		auto texbgc = shade2(texbg,
 			"vec2 grad = fetch2(tex);"
@@ -259,15 +259,26 @@ struct SApp : AppBasic {
 			"_out = rbow;"
 			,ShadeOpts().ifmt(GL_RGB16F),
 			"vec4 rainbow(float x, float br)  { vec4 c = .5 + .5 * cos(6.2832*(x - vec4(0,1,2,0)/3.)); return c * br; }"
-			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416 + .5, length(C)*5.0); }"
+			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416/2.0 + .5, length(C)*10.0); }"
 			);
-		auto texbgcb = gpuBlur2_4::run(texbgc, 1);
+		auto texbgcb = gpuBlur2_4::run_longtail(texbgc, 4, 1.0f);
+
+		auto texshadow = gpuBlur2_4::run(texb, 4);
+		texshadow = shade2(texshadow,
+			"float f = fetch1();"
+			"f = mix(1.0, .3, f);"
+			"f = pow(f, 8.0);"
+			"_out = vec3(f);"
+			);
 	
-		tex = shade2(texb, texbgcb,
+		tex = shade2(texb, texbgcb, texshadow,
 			"float b = fetch1();"
-			"vec3 cb = b * vec3(1.0);"
+			"vec3 cb = b * vec3(0.6);"
 			"vec3 rbow = fetch3(tex2);"
-			"_out = cb + rbow;");
+			"float shadow = fetch1(tex3);"
+			"_out = shadow + cb + rbow;"
+			"_out = pow(_out, vec3(1.0/2.2));"
+			);
 		gl::draw(tex, getWindowBounds());
 	}
 #endif
