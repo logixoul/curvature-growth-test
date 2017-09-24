@@ -266,7 +266,7 @@ struct SApp : AppBasic {
 		auto texshadow = gpuBlur2_4::run(texb, 4);
 		texshadow = shade2(texshadow,
 			"float f = fetch1();"
-			"f = mix(1.0, .3, f);"
+			"f = mix(1.0, 0.0, f);"
 			"f = pow(f, 8.0);"
 			"_out = vec3(f);"
 			);
