@@ -1,5 +1,4 @@
 #include "precompiled.h"
-#if 1
 #include "util.h"
 #include "stuff.h"
 #include "shade.h"
@@ -150,7 +149,6 @@ struct SApp : AppBasic {
 		
 		renderIt();
 
-		/*Sleep(50);*/my_console::clr();
 		sw::endFrame();
 		cfg1::print();
 		my_console::endFrame();
@@ -272,7 +270,6 @@ struct SApp : AppBasic {
 			);
 		gl::draw(tex, getWindowBounds());
 	}
-#endif
 };
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	return mainFuncImpl(new SApp());
