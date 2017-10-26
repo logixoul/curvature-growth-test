@@ -23,7 +23,6 @@ int sy = wsy / scale;
 bool mouseDown_[3];
 bool keys[256];
 gl::Texture texToDraw;
-bool texOverride = false;
 
 Array2D<float> img(sx, sy);
 
@@ -114,8 +113,6 @@ struct SApp : AppBasic {
 	
 	void draw()
 	{
-		::texOverride = false;
-
 		my_console::beginFrame();
 		sw::beginFrame();
 		static bool first = true;
