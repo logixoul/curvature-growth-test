@@ -22,7 +22,6 @@ int sx = wsx / scale;
 int sy = wsy / scale;
 bool mouseDown_[3];
 bool keys[256];
-gl::Texture::Format gtexfmt;
 gl::Texture texToDraw;
 bool texOverride = false;
 
@@ -51,18 +50,13 @@ static float noiseYAt(Vec2f p, float z) {
 	
 
 struct SApp : AppBasic {
-	Rectf area;
-		
 	void setup()
 	{
 		_controlfp(_DN_FLUSH, _MCW_DN);
 
-		area = Rectf(0, 0, (float)sx-1, (float)sy-1).inflated(Vec2f::zero());
-
 		glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
 		glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
 		glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-		gtexfmt.setInternalFormat(hdrFormat);
 		setWindowSize(wsx, wsy);
 
 		glEnable(GL_POINT_SMOOTH);
@@ -115,10 +109,6 @@ struct SApp : AppBasic {
 	{
 		direction = getMousePos() - lastm;
 		lastm = getMousePos();
-	}
-	Vec2f reflect(Vec2f const & I, Vec2f const & N)
-	{
-		return I - N * N.dot(I) * 2.0f;
 	}
 	float noiseProgressSpeed;
 	
