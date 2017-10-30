@@ -34,11 +34,11 @@ bool keys2[256];
 void updateConfig() {
 }
 
-const int numDetailsX = 3;
+const int numDetailsX = 5;
 const float nscale = numDetailsX / (float)sx;
 
 static float noiseXAt(Vec2f p, float z) {
-	float noiseX = ::octave_noise_3d(1, .5, 1.0, p.x * nscale, p.y * nscale, z);
+	float noiseX = ::octave_noise_3d(3, .5, 1.0, p.x * nscale, p.y * nscale, z);
 	return noiseX;
 }
 	
@@ -94,29 +94,12 @@ struct SApp : AppBasic {
 	{
 		mouseDown_[e.isLeft() ? 0 : e.isMiddle() ? 1 : 2] = false;
 	}
-	Vec2f direction;
-	Vec2f lastm;
-	void mouseDrag(MouseEvent e)
-	{
-		mm();
-	}
-	void mouseMove(MouseEvent e)
-	{
-		mm();
-	}
-	void mm()
-	{
-		direction = getMousePos() - lastm;
-		lastm = getMousePos();
-	}
 	float noiseProgressSpeed;
 	
 	void draw()
 	{
 		my_console::beginFrame();
 		sw::beginFrame();
-		static bool first = true;
-		first = false;
 
 		wsx = getWindowSize().x;
 		wsy = getWindowSize().y;
@@ -180,10 +163,10 @@ struct SApp : AppBasic {
 			
 			auto img2 = zeros_like(img);
 
+			Vec2f rotatedUnit(1.0, 0.0);
+			rotatedUnit.rotate(getElapsedFrames() / 100.0f);
 			forxy(img) {
-				Vec2f move;
-				move.x = noiseXAt(Vec2f(p), getElapsedFrames() / 100.0f);
-				move.y = noiseYAt(Vec2f(p), getElapsedFrames() / 100.0f);
+				Vec2f move = rotatedUnit * noiseXAt(Vec2f(p), getElapsedFrames() / 100.0f);
 				aaPoint(img2, Vec2f(p) + move * .5f, img(p));
 				//img2(p) = getBilinear(img, Vec2f(p) + move*.5);
 			}
