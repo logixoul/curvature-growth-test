@@ -22,7 +22,6 @@ int sx = wsx / scale;
 int sy = wsy / scale;
 bool mouseDown_[3];
 bool keys[256];
-gl::Texture texToDraw;
 
 Array2D<float> img(sx, sy);
 
@@ -58,9 +57,6 @@ struct SApp : AppBasic {
 		glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
 		setWindowSize(wsx, wsy);
 
-		glEnable(GL_POINT_SMOOTH);
-
-		Vec2f center = Vec2f(img.Size()) / 2.0f;
 		forxy(img) {
 			img(p) = ci::randFloat();
 		}
@@ -122,7 +118,6 @@ struct SApp : AppBasic {
 
 		if(pause)
 			Sleep(50);
-		//Sleep(2000);
 	}
 	void updateIt() {
 		if(!pause) {
@@ -158,7 +153,7 @@ struct SApp : AppBasic {
 			Vec2f center(sx/2, sy/2);
 			float maxDist = Vec2f::zero().distance(center);
 			forxy(img) {
-				//img(p) *= smoothstep(maxDist*2.0, -maxDist, Vec2f(p).distance(center));
+				//img(p) *= smoothstep(maxDist*4.0, -maxDist, Vec2f(p).distance(center));
 			}
 			
 			auto img2 = zeros_like(img);
