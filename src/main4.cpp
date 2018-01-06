@@ -14,8 +14,8 @@
 
 #define GLSL(sh) #sh
 
-int wsx=600, wsy = 600;
-int scale = 4;
+int wsx=1280, wsy = 720;
+int scale = 6;
 int sx = wsx / ::scale;
 int sy = wsy / ::scale;
 
@@ -109,20 +109,20 @@ struct SApp : App {
 			vec2 center(sx/2, sy/2);
 			float maxDist = distance(vec2(), center);
 			forxy(img) {
-				//img(p) *= smoothstep(maxDist*4.0, -maxDist, vec2(p).distance(center));
+				//img(p) *= smoothstep(maxDist*4.0, -maxDist, distance(vec2(p), center));
 			}
 			
 			auto img2 = zeros_like(img);
 
 			vec2 rotatedUnit(1.0, 0.0);
-			rotatedUnit = ::rotate(getElapsedFrames() / 100.0f) * rotatedUnit;
+			rotatedUnit = ::rotate(getElapsedFrames() / 40000.0f) * rotatedUnit;
 			forxy(img) {
-				vec2 move = rotatedUnit * noiseXAt(vec2(p), getElapsedFrames() / 100.0f);
+				vec2 move = rotatedUnit * noiseXAt(vec2(p), getElapsedFrames() / 40000.0f);
 				aaPoint(img2, vec2(p) + move * .5f, img(p));
 				//img2(p) = getBilinear(img, vec2(p) + move*.5);
 			}
 
-			img = img2;
+			//img = img2;
 
 
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
@@ -138,27 +138,34 @@ struct SApp : App {
 			
 			if(mouseDown_[0])
 			{
-				vec2 scaledm = vec2(mouseX * (float)sx, mouseY * (float)sy);
-				Area a(scaledm, scaledm);
-				int r = 10;
-				a.expand(r, r);
-				for(int x = a.x1; x <= a.x2; x++)
-				{
-					for(int y = a.y1; y <= a.y2; y++)
-					{
-						vec2 v = vec2(x, y) - scaledm;
-						float w = max(0.0f, 1.0f - length(v) / r);
-						w=max(0.0f,w);
-						w = 3 * w * w - 2 * w * w * w;
-						w = 3 * w * w - 2 * w * w * w;
-						w = 3 * w * w - 2 * w * w * w;
-						img.wr(x, y) = lerp(img.wr(x, y), 1.0f, w);
-					}
-				}
+				drawCircle(vec2(mouseX * sx, mouseY * sy));
 			}
+
+			/*float t = getElapsedSeconds();
+			vec2 circlePos(sin(t*.345f)*.5+.5, cos(t * 0.5) * .5 + .5);
+			circlePos *= vec2(sx, sy);
+			drawCircle(circlePos);*/
 		}
 		if (pause)
 			Sleep(50);
+	}
+	void drawCircle(vec2 scaledm) {
+		Area a(scaledm, scaledm);
+		int r = 10;
+		a.expand(r, r);
+		for (int x = a.x1; x <= a.x2; x++)
+		{
+			for (int y = a.y1; y <= a.y2; y++)
+			{
+				vec2 v = vec2(x, y) - scaledm;
+				float w = max(0.0f, 1.0f - length(v) / r);
+				w = max(0.0f, w);
+				w = 3 * w * w - 2 * w * w * w;
+				w = 3 * w * w - 2 * w * w * w;
+				w = 3 * w * w - 2 * w * w * w;
+				img.wr(x, y) = lerp(img.wr(x, y), 1.0f, w);
+			}
+		}
 	}
 	void stefanDraw() {
 		gl::clear(Color(0, 0, 0));
@@ -168,6 +175,7 @@ struct SApp : App {
 			"float f = fetch1(tex);"
 			"float fw = fwidth(f);"
 			"f = smoothstep (.5 - fw / 2, .5 + fw / 2, f);"
+			"f = 1.0 - f;"
 			"_out = vec3(f);"
 			, ShadeOpts().scale(2)
 			);
@@ -175,22 +183,37 @@ struct SApp : App {
 		auto texbg = get_gradients_tex(texb);
 		auto texbgc = shade2(texbg,
 			"vec2 grad = fetch2(tex);"
-			"vec3 rbow = rainbow(grad).xyz;"
+			"vec3 rbow = rainbow(grad);"
 			"_out = rbow;"
 			,ShadeOpts().ifmt(GL_RGB16F),
-			"vec4 rainbow(float x, float br)  { vec4 c = .5 + .5 * cos(6.2832*(x - vec4(0,1,2,0)/3.)); return c * br; }"
-			"vec4 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416/2.0 + .5, length(C)*10.0); }"
+			"vec3 rainbow(float x, float br)  {"
+			"vec3 c = .5 + .5 * cos(6.2832*(x - vec3(0,1,2)/3.));"
+			"c = pow(c, vec3(3.0));" // emphasise red, green and blue hues
+			"return c * br;"
+			"}"
+			"vec3 rainbow(vec2 C)   { return rainbow(atan(C.y,C.x)/3.1416/2.0 + .5, length(C)*10.0); }"
 			);
-		auto texbgcb = gpuBlur2_4::run_longtail(texbgc, 4, 1.0f);
-
+		auto texbgcb = gpuBlur2_4::run_longtail(texbgc, 2, 1.0f);
+		texbgcb = shade2(texbgcb,
+			"vec3 c = fetch3();"
+			"vec3 hsl = rgb2hsl(c);"
+			"hsl[1] = 1+0*pow(hsl[1], .2);"
+			"c = hsl2rgb(hsl);"
+			"_out = c;"
+			,
+			ShadeOpts(),
+			FileCache::get("stuff.fs"));
 		tex = shade2(texb, texbgcb,
 			"float b = fetch1();"
 			"vec3 cb = b * vec3(0.6);"
 			"vec3 rbow = fetch3(tex2);"
 			"_out = cb + rbow;"
+			"_out = max(vec3(0), min(vec3(1), _out));"
 			"_out = pow(_out, vec3(1.0/2.2));"
+			"_out = 1.0 - _out;"
 			, ShadeOpts().ifmt(GL_RGB16F)
 			);
+		tex->setTopDown(true);
 		gl::draw(tex, getWindowBounds());
 	}
 };
