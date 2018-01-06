@@ -1,13 +1,13 @@
 #include "precompiled.h"
 #include "PerlinCalculator2D.h"
 
-float PerlinCalculator2D::calcAt(Vec3f const& p){
-	Vec3f pMod = Vec3f(pos_mod(p.x, 1.0f), pos_mod(p.y, 1.0f), pos_mod(p.z, 1.0f));
-	Vec3f pScaled = pMod * (size - 1);
-	Vec3f floor(std::floor(pScaled.x), std::floor(pScaled.y), std::floor(pScaled.z));
-	Vec3i ifloor = floor;
+float PerlinCalculator2D::calcAt(vec3 const& p){
+	vec3 pMod = vec3(pos_mod(p.x, 1.0f), pos_mod(p.y, 1.0f), pos_mod(p.z, 1.0f));
+	vec3 pScaled = pMod * float(size - 1);
+	vec3 floor(std::floor(pScaled.x), std::floor(pScaled.y), std::floor(pScaled.z));
+	ivec3 ifloor = floor;
 
-	Vec3f fract = pScaled - floor;
+	vec3 fract = pScaled - floor;
 	float fx = fade(fract.x);
 	float fy = fade(fract.y);
 	float fz = fade(fract.z);
@@ -16,8 +16,8 @@ float PerlinCalculator2D::calcAt(Vec3f const& p){
 		for(int y = 0; y <= 1; y++)
 			for(int z = 0; z <= 1; z++)
 			{
-				Vec3f const& grad = getGradient(ifloor + Vec3i(x, y, z));
-				dot[x][y][z] = ci::dot(grad, Vec3f(x, y, z) - fract);
+				vec3 const& grad = getGradient(ifloor + ivec3(x, y, z));
+				dot[x][y][z] = ci::dot(grad, vec3(x, y, z) - fract);
 			}
 		
 	// back->front = y, bottom->top = z, left->right = x
@@ -33,7 +33,7 @@ float PerlinCalculator2D::calcAt(Vec3f const& p){
 
 PerlinCalculator2D::PerlinCalculator2D()
 {
-	gradients = vector<Vec3f>(size*size*size);
+	gradients = vector<vec3>(size*size*size);
 
 	for(int x = 0; x < size; x++)
 	{
@@ -41,8 +41,8 @@ PerlinCalculator2D::PerlinCalculator2D()
 		{
 			for(int z = 0; z < size; z++)
 			{
-				auto& gradient = getGradient(Vec3i(x, y, z));
-				gradient = ci::Rand::randVec3f();
+				auto& gradient = getGradient(ivec3(x, y, z));
+				gradient = ci::Rand::randVec3();
 			}
 		}
 	}
@@ -52,11 +52,11 @@ PerlinCalculator2D::PerlinCalculator2D()
 		{
 			for(int z = 0; z < size; z++)
 			{
-				auto& gradient = getGradient(Vec3i(x, y, z));
+				auto& gradient = getGradient(ivec3(x, y, z));
 				int wx = x % (size - 1);
 				int wy = y % (size - 1);
 				int wz = z % (size - 1);
-				gradient = getGradient(Vec3i(wx, wy, wz));
+				gradient = getGradient(ivec3(wx, wy, wz));
 			}
 		}
 	}

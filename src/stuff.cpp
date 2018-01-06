@@ -1,5 +1,6 @@
 #include "precompiled.h"
 #include "stuff.h"
+#include "gpgpu.h"
 
 int denormal_check::num;
 
@@ -15,27 +16,23 @@ string FileCache::get(string filename) {
 	return db[filename];
 }
 
-Array2D<Vec3f> resize(Array2D<Vec3f> src, Vec2i dstSize, const ci::FilterBase &filter)
+Array2D<vec3> resize(Array2D<vec3> src, ivec2 dstSize, const ci::FilterBase &filter)
 {
 	ci::SurfaceT<float> tmpSurface(
-		(float*)src.data, src.w, src.h, /*rowBytes*/sizeof(Vec3f) * src.w, ci::SurfaceChannelOrder::RGB);
+		(float*)src.data, src.w, src.h, /*rowBytes*/sizeof(vec3) * src.w, ci::SurfaceChannelOrder::RGB);
 	auto resizedSurface = ci::ip::resizeCopy(tmpSurface, tmpSurface.getBounds(), dstSize, filter);
-	Array2D<Vec3f> resultArray = resizedSurface;
+	Array2D<vec3> resultArray = resizedSurface;
 	return resultArray;
 }
 
-Array2D<float> resize(Array2D<float> src, Vec2i dstSize, const ci::FilterBase &filter)
+Array2D<float> resize(Array2D<float> src, ivec2 dstSize, const ci::FilterBase &filter)
 {
-#if 0
 	ci::ChannelT<float> tmpSurface(
-		(float*)src.data, src.w, src.h, /*rowBytes*/sizeof(float) * src.w, ci::SurfaceChannelOrder::ABGR);
-	auto resizedSurface = ci::ip::resizeCopy(tmpSurface, tmpSurface.getBounds(), dstSize, filter);
+		src.w, src.h, /*rowBytes*/sizeof(float) * src.w, 1, src.data);
+	ci::ChannelT<float> resizedSurface(dstSize.x, dstSize.y);
+	ci::ip::resize(tmpSurface, &resizedSurface, filter);
 	Array2D<float> resultArray = resizedSurface;
 	return resultArray;
-#endif
-	auto srcRgb = ::merge(list_of(src)(src)(src));
-	auto resized = resize(srcRgb, dstSize, filter);
-	return ::split(resized)[0];
 }
 
 float sq(float f) {
@@ -69,4 +66,26 @@ float ksizeFromSigma(float sigma) {
 	if(ksize % 2 == 0)
 		ksize++;
 	return ksize;
+}
+
+void disableGLReadClamp() {
+	glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
+}
+
+void enableDenormalFlushToZero() {
+	_controlfp(_DN_FLUSH, _MCW_DN);
+}
+
+gl::TextureRef redToLuminance(gl::TextureRef const& in) {
+	return shade2(in,
+		"_out.rgb = vec3(fetch1());",
+		ShadeOpts().ifmt(GL_RGBA16F)
+	);
+}
+mat2 rotate(float angle) {
+	float c = cos(angle), s = sin(angle);
+	mat2 mat;
+	mat[0] = vec2(c, -s);
+	mat[1] = vec2(s, c);
+	return mat;
 }

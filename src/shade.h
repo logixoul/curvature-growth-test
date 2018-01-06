@@ -2,8 +2,9 @@
 
 #include "precompiled.h"
 #include "util.h"
+#include "TextureCache.h"
 
-void beginRTT(gl::Texture fbotex);
+void beginRTT(gl::TextureRef fbotex);
 void endRTT();
 
 struct Str {
@@ -16,8 +17,8 @@ struct Str {
 		s += s2.s + "\n";
 		return *this;
 	}
-	operator const char*() {
-		return s.c_str();
+	operator std::string() {
+		return s;
 	}
 };
 
@@ -39,41 +40,14 @@ struct ShadeOpts
 	ShadeOpts& ifmt(GLenum val) { _ifmt=val; return *this; }
 	ShadeOpts& scale(float val) { _scaleX=val; _scaleY=val; return *this; }
 	ShadeOpts& scale(float valX, float valY) { _scaleX=valX; _scaleY=valY; return *this; }
-	//ShadeOpts& tex(gl::Texture val) { _texv.push_back(val); }
+	ShadeOpts& texCache(TextureCache* val) { _texCache = val; return *this; }
 	optional<GLenum> _ifmt;
 	float _scaleX, _scaleY;
-	//vector<gl::Texture> _texv;
+	TextureCache* _texCache = nullptr;
 };
-//typedef ShadeOpts Shade;
-struct Shade
-{
-public:
-	Shade()
-	{
-		_scaleX = _scaleY = 1.0f;
-	}
-	Shade& src(string val) { _src = val; return *this; }
-	Shade& expr(string val) {
-		_src = "void shade() {";
-		_src += "_out = " + val + ";";
-		_src += "}";
-		return *this;
-	}
-	Shade& tex(gl::Texture val) { _texv.push_back(val); return *this; }
-	Shade& ifmt(GLenum val) { _ifmt=val; return *this; }
-	Shade& scale(float val) { _scaleX=val; _scaleY=val; return *this; }
-	Shade& scale(float valX, float valY) { _scaleX=valX; _scaleY=valY; return *this; }
-	Shade& operator()(gl::Texture val) { tex(val); return *this; }
 
-	gl::Texture run();
-
-	string _src;
-	vector<gl::Texture> _texv;
-	optional<GLenum> _ifmt;
-	float _scaleX, _scaleY;
-};
-gl::Texture shade(vector<gl::Texture> const& texv, const char* fshader_constChar, ShadeOpts const& opts=ShadeOpts());
-inline gl::Texture shade(vector<gl::Texture> const& texv, const char* fshader_constChar, float resScale)
+gl::TextureRef shade(vector<gl::TextureRef> const& texv, const char* fshader_constChar, ShadeOpts const& opts=ShadeOpts());
+inline gl::TextureRef shade(vector<gl::TextureRef> const& texv, const char* fshader_constChar, float resScale)
 {
 	return shade(texv, fshader_constChar, ShadeOpts().scale(resScale));
 }

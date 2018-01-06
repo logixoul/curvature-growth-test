@@ -52,6 +52,14 @@ float smoothstep(float edge0, float edge1, float x)
 	return x*x*(3 - 2*x);
 }
 
+float linearstep(float edge0, float edge1, float x)
+{
+	// Scale, bias and saturate x to 0..1 range
+	x = (x - edge0) / (edge1 - edge0);
+	x = constrain(x, 0.f, 1.f);
+	return x;
+}
+
 // Program tested on Microsoft Visual Studio 2008 - Zahid Ghadialy
 // This program shows example of Getting Elapsed Time
 //#include <windows.h>
@@ -95,21 +103,27 @@ namespace Stopwatch
 	}
 }
 
-void copyCvtData(ci::Surface8u const& surface, Array2D<Vec3f> dst) {
+void copyCvtData(ci::Surface8u const& surface, Array2D<vec3> dst) {
 	forxy(dst) {
 		ColorAT<uint8_t> inPixel = surface.getPixel(p);
-		dst(p) = Vec3f(inPixel.r, inPixel.g, inPixel.b) / 255.0f;
+		dst(p) = vec3(inPixel.r, inPixel.g, inPixel.b) / 255.0f;
 	}
 }
-void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<Vec3f> dst) {
+void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<vec3> dst) {
 	forxy(dst) {
 		ColorAT<float> inPixel = surface.getPixel(p);
-		dst(p) = Vec3f(inPixel.r, inPixel.g, inPixel.b);
+		dst(p) = vec3(inPixel.r, inPixel.g, inPixel.b);
 	}
 }
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<float> dst) {
 	forxy(dst) {
 		ColorAT<float> inPixel = surface.getPixel(p);
 		dst(p) = inPixel.r;
+	}
+}
+void copyCvtData(ci::ChannelT<float> const& surface, Array2D<float> dst) {
+	forxy(dst) {
+		float inPixel = surface.getValue(p);
+		dst(p) = inPixel;
 	}
 }
