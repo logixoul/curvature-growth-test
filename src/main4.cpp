@@ -64,10 +64,10 @@ struct SApp : App {
 			//auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, 3);
 			
 			for(int i = 0; i < 1; i++) {
-				int r = 1 << int(i * 1.5);
+				int r = 1 << int(i * 3);
 				r += 1;
-				//auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, r);
-				//auto img2 = zeros_like(img);
+				auto imgb = gaussianBlur<float, WrapModes::GetWrapped>(img, r);
+				auto img2 = img.clone();
 				auto gradients = get_gradients(img);
 				forxy(gradients) {
 					vec2 pf = p;
@@ -79,14 +79,15 @@ struct SApp : App {
 					grad_b = vec2(-grad_b.y, grad_b.x);
 					vec2 dir = grad_a + grad_b;
 					if(dot(dir, grad) < 0.0) {
-						//if(getBilinear(imgb, vec2(p+dir)) < .5f)
-							img(p) += length(dir) * 1.0 * img(p);
+						//if(getBilinear(imgb, p) < .5f)
+							img2(p) += length(dir) * 1.0 * img(p) * .7f;
 					}
 				}
 				/*auto img2b = gaussianBlur<float, WrapModes::GetWrapped>(img2, r);
 				forxy(img) {
 					img(p) += img2b(p);
 				}*/
+				img = img2;
 			}
 		
 			vec2 center(sx/2, sy/2);
