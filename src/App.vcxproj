@@ -14,7 +14,7 @@
     <ProjectGuid>{74202EDD-91D2-4D2A-B0B6-355CEB16E6BE}</ProjectGuid>
     <RootNamespace>AppApp</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -119,14 +119,13 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\won%27t del\curvature-growth-test\src\simplexnoise.cpp" />
     <ClCompile Include="cfg1.cpp" />
     <ClCompile Include="colorspaces.cpp" />
     <ClCompile Include="easyfft.cpp" />
     <ClCompile Include="gpuBlur2_4.cpp" />
     <ClCompile Include="gpuBlur2_5.cpp" />
-    <ClCompile Include="hdrwrite.cpp" />
     <ClCompile Include="main4.cpp" />
-    
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">precompiled.h</PrecompiledHeaderFile>
@@ -135,7 +134,6 @@
     </ClCompile>
     <ClCompile Include="qdebug.cpp" />
     <ClCompile Include="shade.cpp" />
-    <ClCompile Include="simplexnoise.cpp" />
     <ClCompile Include="stefanfw.cpp" />
     <ClCompile Include="stuff.cpp" />
     <ClCompile Include="sw.cpp" />
@@ -143,6 +141,7 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\won%27t del\curvature-growth-test\src\simplexnoise.h" />
     <ClInclude Include="bicubic.h" />
     <ClInclude Include="cfg1.h" />
     <ClInclude Include="colorspaces.h" />
@@ -150,12 +149,9 @@
     <ClInclude Include="gpgpu.h" />
     <ClInclude Include="gpuBlur2_4.h" />
     <ClInclude Include="gpuBlur2_5.h" />
-    <ClInclude Include="hdrwrite.h" />
-    
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
     <ClInclude Include="shade.h" />
-    <ClInclude Include="simplexnoise.h" />
     <ClInclude Include="stefanfw.h" />
     <ClInclude Include="stuff.h" />
     <ClInclude Include="sw.h" />

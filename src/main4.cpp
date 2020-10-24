@@ -6,9 +6,6 @@
 #include "gpuBlur2_4.h"
 #include "stefanfw.h"
 
-#include "hdrwrite.h"
-#include "simplexnoise.h"
-
 #include "colorspaces.h"
 #include "easyfft.h"
 
@@ -30,20 +27,6 @@ bool pause;
 
 void updateConfig() {
 }
-
-const int numDetailsX = 5;
-const float nscale = numDetailsX / (float)sx;
-
-static float noiseXAt(vec2 p, float z) {
-	float noiseX = ::octave_noise_3d(3, .5, 1.0, p.x * nscale, p.y * nscale, z);
-	return noiseX;
-}
-	
-static float noiseYAt(vec2 p, float z) {
-	float noiseY = ::octave_noise_3d(1, .5, 1.0, p.x * nscale, p.y * nscale + numDetailsX, z);
-	return noiseY;
-}
-	
 
 struct SApp : App {
 	void setup()
@@ -108,22 +91,6 @@ struct SApp : App {
 		
 			vec2 center(sx/2, sy/2);
 			float maxDist = distance(vec2(), center);
-			forxy(img) {
-				//img(p) *= smoothstep(maxDist*4.0, -maxDist, distance(vec2(p), center));
-			}
-			
-			auto img2 = zeros_like(img);
-
-			vec2 rotatedUnit(1.0, 0.0);
-			rotatedUnit = ::rotate(getElapsedFrames() / 40000.0f) * rotatedUnit;
-			forxy(img) {
-				vec2 move = rotatedUnit * noiseXAt(vec2(p), getElapsedFrames() / 40000.0f);
-				aaPoint(img2, vec2(p) + move * .5f, img(p));
-				//img2(p) = getBilinear(img, vec2(p) + move*.5);
-			}
-
-			//img = img2;
-
 
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
 			float avg = sum / img.area;
@@ -131,7 +98,6 @@ struct SApp : App {
 			forxy(img) {
 				img(p) *= mul;
 				img(p) = smoothstep(0.0, 1.0, img(p));
-				//img(p) = smoothstep(0.0, 1.0, img(p));
 			}
 
 			//img = to01(img);
@@ -175,9 +141,9 @@ struct SApp : App {
 			"float f = fetch1(tex);"
 			"float fw = fwidth(f);"
 			"f = smoothstep (.5 - fw / 2, .5 + fw / 2, f);"
-			"f = 1.0 - f;"
+			//"f = 1.0 - f;"
 			"_out = vec3(f);"
-			, ShadeOpts().scale(2)
+			, ShadeOpts().scale(2).ifmt(GL_RGB8)
 			);
 		auto texb = tex;//gpuBlur2_4::run(tex, 1);
 		auto texbg = get_gradients_tex(texb);
