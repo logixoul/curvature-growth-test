@@ -176,7 +176,7 @@ struct SApp : App {
 			"_out = cb + rbow;"
 			"_out = max(vec3(0), min(vec3(1), _out));"
 			"_out = pow(_out, vec3(1.0/2.2));"
-			"_out = 1.0 - _out;"
+			//"_out = 1.0 - _out;"
 			, ShadeOpts().ifmt(GL_RGB16F)
 			);
 		tex->setTopDown(true);
